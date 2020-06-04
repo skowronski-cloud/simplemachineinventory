@@ -1,0 +1,4 @@
+---
+ProxiedHost: localhost:5000
+DB: sqlite:///SimpleMachineInventory.db
+Debug: true

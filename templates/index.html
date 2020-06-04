@@ -1,0 +1,516 @@
+<!doctype html>
+<html>
+<head>
+  <title>SimpleMachineInventory</title>
+  <script src="/static/jquery.min.js"></script>
+  <script src="/static/bootstrap.min.js"></script>
+  <script src="/static/json-api-store.prod.js"></script>
+  <script src="/static/moments.js"></script>
+  <script src="/static/footable.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="/static/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="/static/footable.bootstrap.min.css" />
+  <link rel="icon" type="image/png" href="/static/chest.png">
+</head>
+<body>
+  <style>
+    html, body{
+      padding-left: 10px;
+      padding-right: 10px;
+      zoom: 115%;
+    }
+    .numeric, .hostname{
+      font-family: "Lucida Console", Monaco, monospace
+    }
+    .hostname{
+      font-weight: bold;
+    }
+    td ul{
+      padding-left: 15px;
+    }
+    .small{
+      font-size: x-small;
+    }
+    .edit-button{
+      color: #3498DB;
+    }
+    .editTableFieldName{
+      font-weight: bold;
+      text-align: right;
+    }
+    #editHostTable td {
+      padding: 5px;
+    }
+    #editHostDisksField {
+      border-left: 1px solid black;
+    }
+    #headerTable{
+      width: 100%;
+    }
+    .r{
+      text-align: right;
+    }
+    .inlineImage{
+      height: 1.25em;
+    }
+    .btn{
+      padding: 3px 6px;
+    }
+
+  </style>
+  <table id="headerTable">
+    <tr>
+      <td class="l">
+        <h1>
+          <!--<span class="glyphicon glyphicon-floppy-disk"></span>&nbsp;-->
+          <img src="/static/chest.png" class="inlineImage" />
+          <b>SimpleMachineInventory</b>
+          <i style="height: small">v0.5.0</i>
+        </h1>
+      </td>
+      <td class="r" style="display: none">
+        Welcome <span id="upn">anonymous</span>! <a id="loginbtn" class='btn btn-sm btn-primary' href="/auth_request">Login</a><a id="logoutbtn" class='btn btn-sm btn-primary' href="/auth_destroy">Logout</a>
+      </td>
+  </table>
+
+  <a class='btn btn-info' href='/api/'>API (Swagger)</a>
+  <a class='btn btn-info' href='/ansible/list'><img src="/static/ansiblelogo.png" class="inlineImage" /> List</a>
+  <a class='btn btn-info' href='/ansible/host/HOSTNAME_HERE'><img src="/static/ansiblelogo.png" class="inlineImage" /> Host</a>
+  <button type='button' class='btn-for-writer btn btn-success' onClick='editHost(-1)'>Add host</button>
+
+  <table id="data" class="table" data-sorting="true" data-filtering="true" data-show-toggle="true" data-expand-first="false">
+    <thead>
+    <tr>
+        <th>IP</th>
+        <th>Location</th>
+        <th>Species</th>
+        <th>Hostname</th>
+        <th>Group</th>
+        <th>Role</th>
+        <th>System</th>
+        <th data-type="number">CPU</th>
+        <th>RAM</th>
+        <th>Disks</th>
+        <th data-breakpoints="all">Purpose</th>
+        <th data-breakpoints="all">Notes</th>
+        <th data-breakpoints="all">Ansible variables</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+
+  <div class="modal" tabindex="-1" role="dialog" id="editHost">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit host</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <table id="editHostTable">
+            <tr><td class="editTableFieldName">Host #</td>      <td id="editHostIDField"><span></span></td></tr>
+            <tr><td class="editTableFieldName">IP</td>          <td id="editHostIPField"><input type="text" width="30" /></td></td></tr>
+            <tr><td class="editTableFieldName">Location</td>    <td id="editHostLocationField"><select></select></td></tr>
+            <tr><td class="editTableFieldName">Species</td>     <td id="editHostSpeciesField"><select></select></td></tr>
+            <tr><td class="editTableFieldName">Hostname</td>    <td id="editHostHostnameField"><input type="text" width="30" /></td></tr>
+            <tr><td class="editTableFieldName">Group</td>       <td id="editHostGroupField"><select></select></td></tr>
+            <tr><td class="editTableFieldName">Role</td>        <td id="editHostRoleField"><select></select></td></tr>
+            <tr><td class="editTableFieldName">System</td>      <td id="editHostSystemField"><select></select></td></tr>
+            <tr><td class="editTableFieldName">CPU</td>         <td id="editHostCPUField"><input type="number" min="0" max="128" /></td></tr>
+            <tr><td class="editTableFieldName">RAM</td>         <td id="editHostRAMField"><input type="number" min="0" max="131072" />MB</td></tr>
+            <tr><td class="editTableFieldName">Disks</td>       <td id="editHostDisksField"><ul></ul></td></tr>
+            <tr><td class="editTableFieldName">Purpose</td>     <td id="editHostPurposeField"><textarea rows="4" cols="50"></textarea></td></tr>
+            <tr><td class="editTableFieldName">Notes</td>       <td id="editHostNotesField"><textarea rows="4" cols="50"></textarea></td></tr>
+            <tr><td class="editTableFieldName">Ansible vars</td><td id="editHostAnsibleVarsField"><textarea class="numeric" rows="4" cols="50"></textarea></td></tr>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-for-writer btn btn-danger" onClick="deleteHost()">Delete</button>
+          <button type="button" class="btn-for-writer btn btn-primary" onClick="saveHost()">Save</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" tabindex="-1" role="dialog" id="editDisk">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit disk</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <table id="editDiskTable">
+            <tr><td class="editTableFieldName">Disk #</td>    <td id="editDiskIDField"><span></span></td></tr>
+            <tr><td class="editTableFieldName">Host #</td>    <td id="editDiskHostIDField"><span></span></td></tr>
+            <tr><td class="editTableFieldName">Size</td>      <td id="editDiskSizeField"><input type="number" min="0" max="4096" />GB</td></tr>
+            <tr><td class="editTableFieldName">Name</td>      <td id="editDiskNameField"><input type="text" width="30" /></td></tr>
+            <tr><td class="editTableFieldName">Notes</td>     <td id="editDiskNotesField"><textarea rows="4" cols="50"></textarea></td></tr>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-for-writer btn btn-danger" onClick="deleteDisk()">Delete</button>
+          <button type="button" class="btn-for-writer btn btn-primary" onClick="saveDisk()">Save</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  var adapter = new Store.AjaxAdapter({ base: "/api" });
+  var store = new Store(adapter);
+
+  function editHost(id){
+    if (id<0 || id=="new"){
+        $("#editHostIDField          span").html("new")
+        $("#editHostIPField          input").val("")
+        $("#editHostHostnameField    input").val("")
+        $("#editHostLocationField    select").val(-1)
+        $("#editHostSpeciesField     select").val(-1)
+        $("#editHostGroupField       select").val(-1)
+        $("#editHostRoleField        select").val(-1)
+        $("#editHostSystemField      select").val(-1)
+        $("#editHostCPUField         input").val("")
+        $("#editHostRAMField         input").val("")
+        $("#editHostPurposeField     textarea").val("")
+        $("#editHostNotesField       textarea").val("")
+        $("#editHostAnsibleVarsField textarea").val("")
+        
+        $("#editHost").modal()
+    }
+    else {
+      store.load("Host",id,{ include: "disks,location,species,role,group,system" }).subscribe(function (host) {
+        console.log(host)
+        $("#editHostIDField          span").html(host.id)
+        $("#editHostIPField          span").html(host.ip)
+        $("#editHostHostnameField    input").val(host.name)
+        $("#editHostLocationField    select").val(host.location.id)
+        $("#editHostSpeciesField     select").val(host.species.id)
+        $("#editHostGroupField       select").val(host.group.id)
+        $("#editHostRoleField        select").val(host.role.id)
+        $("#editHostSystemField      select").val(host.system.id)
+        $("#editHostCPUField         input").val(host.cpu)
+        $("#editHostRAMField         input").val(host.ram)
+        $("#editHostPurposeField     textarea").val(host.purpose)
+        $("#editHostNotesField       textarea").val(host.notes)
+        $("#editHostAnsibleVarsField textarea").val(host.ansible_vars)
+
+        $("#editHostDisksField ul").html("")
+        $.each( host.disks, function( idx, disk ) {
+          $("#editHostDisksField ul").append(
+            "<li>"+
+              "<b class='numeric'>"+disk.size+"GB</b>"+
+              " - "+
+              "<i>"+disk.name+"</i>"+
+              " "+
+              "<button type='button' class='btn btn-primary btn-sm' onClick='editDisk("+disk.id+")'>edit</button>"+
+            "</li>"
+          )
+        })
+        $("#editHostDisksField ul").append(
+            "<li>"+
+              "<button type='button' class='btn btn-success btn-sm' onClick='editDisk(-1)'>new disk</button>"+
+            "</li>"
+          )
+
+        $("#editHost").modal()
+      });
+    }
+  }
+  function saveHost(){
+    var hostID=$("#editHostIDField  span").html();
+    var hostFromEditor={
+      ip:          $("#editHostIPField          input").val(),
+      name:        $("#editHostHostnameField    input").val(),
+      location_id: $("#editHostLocationField    :selected").val(),
+      species_id:  $("#editHostSpeciesField     :selected").val(),
+      group_id:    $("#editHostGroupField       :selected").val(),
+      role_id:     $("#editHostRoleField        :selected").val(),
+      system_id:   $("#editHostSystemField      :selected").val(),
+      cpu:         $("#editHostCPUField         input").val(),
+      ram:         $("#editHostRAMField         input").val(),
+      purpose:     $("#editHostPurposeField     textarea").val(),
+      notes:       $("#editHostNotesField       textarea").val(),
+      ansible_vars:$("#editHostAnsibleVarsField textarea").val(),
+    };
+
+    if (hostID<0 || hostID=="new"){
+      store.create("Host",hostFromEditor).subscribe(function (host) {
+        $("#editHostIDField  span").html(host.id)
+        editHost(host.id)
+        alert("Created host #"+host.id)
+        loadHosts()
+      });      
+    }
+    else {
+      store.update("Host",hostID,hostFromEditor).subscribe(function (host) {
+        editHost(host.id)
+        alert("Saved host #"+host.id)
+        loadHosts()
+      });      
+    }
+  }
+  function deleteHost(){
+    var hostID=$("#editHostIDField   span").html();
+    if (confirm("Are you sure you wnat to delete this host?")){
+      store.destroy("Host",hostID).subscribe(function (disk) {
+        alert("Deleted host #"+hostID)
+        loadHosts()
+        $("#editHost").modal('hide')
+      });
+    }
+  }
+
+  function editDisk(id){
+    if (id<0 || id=="new"){
+        $("#editDiskIDField       span").html("new")
+        $("#editDiskHostIDField   span").html($("#editHostIDField span").html())
+        $("#editDiskSizeField     input").val(0)
+        $("#editDiskNameField     input").val("")
+        $("#editDiskNotesField    textarea").val("")
+        $("#editDisk").modal()
+    }
+    else {
+      store.load("Disk",id,{ include: "" }).subscribe(function (disk) {
+        console.log(disk)
+        $("#editDiskIDField       span").html(disk.id)
+        $("#editDiskHostIDField   span").html(disk.host_id)
+        $("#editDiskSizeField     input").val(disk.size)
+        $("#editDiskNameField     input").val(disk.name)
+        $("#editDiskNotesField    textarea").val(disk.notes)
+
+        $("#editDisk").modal()
+      });
+    }
+  }
+  function saveDisk(){
+    var diskID=$("#editDiskIDField  span").html();
+    var diskFromEditor={
+      host_id:     $("#editDiskHostIDField   span").html(),
+      name:        $("#editDiskNameField     input").val(),
+      size:        $("#editDiskSizeField     input").val(),
+      notes:       $("#editDiskNotesField    textarea").val()
+    };
+
+    if (diskID<0 || diskID=="new"){
+      store.create("Disk",diskFromEditor).subscribe(function (disk) {
+        editHost(disk.host_id)
+        $("#editDiskIDField  span").html(disk.id)
+        alert("Created disk #"+disk.id+" on host #"+disk.host_id)
+        loadHosts()
+      });
+    }
+    else {
+      store.update("Disk",diskID,diskFromEditor).subscribe(function (disk) {
+        editHost(disk.host_id)
+        alert("Saved disk #"+disk.id+" on host #"+disk.host_id)
+        loadHosts()
+      });
+    }
+  }
+  function deleteDisk(){
+    var diskID=$("#editDiskIDField       span").html();
+    var hostID=$("#editDiskHostIDField   span").html();
+    if (confirm("Are you sure you wnat to delete this disk?")){
+      store.destroy("Disk",diskID).subscribe(function (disk) {
+        editHost($("#editDiskHostIDField   span").html())
+        alert("Deleted disk #"+diskID+" from host #"+hostID)
+        loadHosts()
+        $("#editDisk").modal('hide')
+      });
+    }
+  }
+
+  function sortSelects(selector){
+    var select = $(selector);
+    select.html(select.find('option').sort(function(x, y) {
+      // to change to descending order switch "<" for ">"
+      return $(x).text() > $(y).text() ? 1 : -1;
+    }));
+  }
+
+  function loadMetadata(){
+    store.loadAll("Location").subscribe(function (Location) {
+      $("#editHostLocationField select").html("")
+      $.each( Location, function( idx, location ) {
+        $("#editHostLocationField select").append(
+          "<option value='"+location.id+"'>"+location.datacenter+" - "+location.hypervisor+"</option>"
+        );
+      });
+      sortSelects("#editHostLocationField select")
+    });
+    store.loadAll("Species").subscribe(function (Species) {
+      $("#editHostSpeciesField select").html("")
+      $.each( Species, function( idx, species ) {
+        $("#editHostSpeciesField select").append(
+          "<option value='"+species.id+"'>"+species.name+"</option>"
+        );
+      });
+      sortSelects("#editHostSpeciesField select")
+    });
+    store.loadAll("Group").subscribe(function (Group) {
+      $("#editHostGroupField select").html("")
+      $.each( Group, function( idx, group ) {
+        $("#editHostGroupField select").append(
+          "<option value='"+group.id+"'>"+group.name+"</option>"
+        );
+      });
+      sortSelects("#editHostGroupField select")
+    });
+    store.loadAll("Role").subscribe(function (Role) {
+      $("#editHostRoleField select").html("")
+      $.each( Role, function( idx, role) {
+        $("#editHostRoleField select").append(
+          "<option value='"+role.id+"'>"+role.name+"</option>"
+        );
+      });
+      sortSelects("#editHostRoleField select")
+    });
+    store.loadAll("System").subscribe(function (System) {
+      $("#editHostSystemField select").html("")
+      $.each( System, function( idx, system) {
+        $("#editHostSystemField select").append(
+          "<option value='"+system.id+"'>"+system.name+"</option>"
+        );
+      });
+      sortSelects("#editHostSystemField select")
+    });    
+  }
+  function loadHosts(){
+    $("#data tbody").html("");
+    store.loadAll(
+      "Host", 
+      { include: "disks,location,species,role,group,system" }
+    ).subscribe(function (Host) {
+      window.Host=Host;
+      $.each( Host, function( idx, host ) {
+        var disks=""; var disksTotal=0;
+        $.each( host.disks, function( diskidx, disk ) {
+          disks+="<li>"+disk.size+"GB</li>";
+          disksTotal+=disk.size;
+        });
+        var host_ram_formatted=(host.ram<1024 ? host.ram+" MB" : (host.ram/1024).toFixed(2)+" GB")
+
+        $("#data tbody").append(
+          "<tr style='background-color: "+host.group.color+"'>"+
+            "<td class='numeric' data-sort-value='"+host.ip+"'>"+
+              host.ip+"&nbsp;"+
+              "<span class='glyphicon edit-button glyphicon-edit' onClick='editHost("+host.id+")'/>"+
+            "</td>"+
+            "<td class='small'>"+host.location.datacenter+"<br />"+host.location.hypervisor+"</td>"+
+            "<td>"+host.species.name+"</td>"+
+            "<td class='hostname'>"+host.name+"</td>"+
+            "<td>"+host.group.name+"</td>"+
+            "<td>"+host.role.name+"</td>"+
+            "<td>"+
+              "<span style='width: 2em;'>"+
+                "<img src='"+host.system.icon+"' style='height: 1.5em;' /> "+
+              "</span>"+
+              "<span class='small'>"+host.system.name+"</span>"+
+            "</td>"+
+            "<td class='numeric'>"+host.cpu+"</td>"+
+            "<td class='numeric' data-sort-value='"+host.ram+"'>"+host_ram_formatted+"</td>"+
+            "<td class='numeric' data-sort-value='"+disksTotal+"'><ul>"+disks+"</ul></td>"+
+            "<td>"+host.purpose+"</td>"+
+            "<td>"+host.notes+"</td>"+
+            "<td><pre>"+host.ansible_vars+"</pre></td>"+
+          "</tr>"
+        );
+      });
+      jQuery(function($){
+        $('.table').footable();
+      });
+    });
+  }
+
+  function checkAuth(){
+    $.getJSON('/auth_check', function(data) { 
+      if (data.upn!="anonymous"){
+        $("#upn").text(data.upn)
+        $("#loginbtn").hide()
+        console.log(data)
+      }
+      else {
+        $("#logoutbtn").hide()
+      }
+
+      if (!data.writer){
+        $(".btn-for-writer").each(function(){
+          $(this).attr('disabled', 'disabled');
+        })
+      }
+    }); 
+  }
+
+  $(function() {
+    checkAuth()
+    loadMetadata()
+    loadHosts()
+  });
+
+  store.define([ "Location" ], {
+    datacenter:   Store.attr(),
+    hypervisor:   Store.attr(),
+    hosts:        Store.hasMany()
+  });
+  store.define([ "Species" ], {
+    name:         Store.attr(),
+    hosts:        Store.hasMany()
+  });
+  store.define([ "Role" ], {
+    name:         Store.attr(),
+    notes:        Store.attr(),
+    hosts:        Store.hasMany()
+  });
+  store.define([ "Group" ], {
+    name:         Store.attr(),
+    color:        Store.attr(),
+    owners:       Store.attr(),
+    notes:        Store.attr(),
+    hosts:        Store.hasMany()
+  });
+  store.define([ "System" ], {
+    name:         Store.attr(),
+    icon:         Store.attr(),
+    hosts:        Store.hasMany()
+  });
+  store.define([ "Disk" ], {
+    host:         Store.hasOne(),
+    host_id:      Store.attr(),
+    size:         Store.attr(),
+    name:         Store.attr(),
+    notes:        Store.attr()  
+  });
+  store.define([ "Host" ], {
+    ip:           Store.attr(),
+    name:         Store.attr(),
+    location:     Store.hasOne(),
+    location_id:  Store.attr(),
+    species:      Store.hasOne(),
+    species_id:   Store.attr(),
+    role:         Store.hasOne(),
+    role_id:      Store.attr(),
+    group:        Store.hasOne(),
+    group_id:     Store.attr(),
+    purpose:      Store.attr(),
+    cpu:          Store.attr(),
+    ram:          Store.attr(),
+    disks:        Store.hasMany(),
+    system:       Store.hasOne(),
+    system_id:    Store.attr(),
+    notes:        Store.attr(),
+    ansible_vars: Store.attr()
+  });
+
+  store.observable.subscribe(function (event) {
+    //console.log(event.name, event.type, event.id, event.resource);
+  });
+</script>
+</body>
+</html>
