@@ -8,7 +8,7 @@ Type=simple
 Restart=always
 RestartSec=1
 WorkingDirectory=/srv/SimpleMachineInventory
-ExecStart=/srv/SimpleMachineInventory/main.py
+ExecStart=/srv/SimpleMachineInventory/main.py 0.0.0.0 5000
 
 [Install]
 WantedBy=multi-user.target
