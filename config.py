@@ -9,7 +9,6 @@ DEBUG_ENABLED  = cfg['Debug']
 from flask import Flask
 from flask_caching import Cache
 from flask_compress import Compress
-from flask_oauthlib.client import OAuth
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
