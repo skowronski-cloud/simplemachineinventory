@@ -26,8 +26,8 @@ def send_fonts(path):
   return send_from_directory("fonts", path)
 
 if __name__ == "__main__":
-  HOST = sys.argv[1] if len(sys.argv) == 2 else "localhost"
-  PORT = int(sys.argv[2]) if len(sys.argv) == 2 else 5000
+  HOST = sys.argv[1] if len(sys.argv) == 3 else "localhost"
+  PORT = int(sys.argv[2]) if len(sys.argv) == 3 else 5000
   db.init_app(app)
   db.app = app
   db.create_all()
