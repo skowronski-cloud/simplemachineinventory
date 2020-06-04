@@ -8,24 +8,6 @@
 * some reverse proxy for covering up auth and access control
 * `pip3 install -r requyirements.txt`
 
-### example systemd .service file
-```
-[Unit]
-Description=SimpleMachineInventory
-After=network.target
-StartLimitIntervalSec=0
-
-[Service]
-Type=simple
-Restart=always
-RestartSec=1
-WorkingDirectory=/srv/SimpleMachineInventory
-ExecStart=/srv/SimpleMachineInventory/main.py
-
-[Install]
-WantedBy=multi-user.target
-```
-
 
 ## usage 
 ### managing hosts and disks
