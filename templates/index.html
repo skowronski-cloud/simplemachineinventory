@@ -418,7 +418,7 @@
 
         $("#data tbody").append(
           "<tr style='background-color: "+host.group.color+"'>"+
-            "<td class='numeric' data-sorted="true" data-sort-value='"+host_ip_int+"'>"+
+            "<td class='numeric' data-sorted='true' data-sort-value='"+host_ip_int+"'>"+
               host.ip+"&nbsp;"+
               "<span class='glyphicon edit-button glyphicon-edit' onClick='editHost("+host.id+")'/>"+
             "</td>"+
@@ -444,7 +444,7 @@
       });
       jQuery(function($){
         $('.table').footable();
-        
+
       });
     });
   }
