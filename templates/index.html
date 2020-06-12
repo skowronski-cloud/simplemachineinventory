@@ -206,7 +206,7 @@
       store.load("Host",id,{ include: "disks,location,species,role,group,system" }).subscribe(function (host) {
         console.log(host)
         $("#editHostIDField          span").html(host.id)
-        $("#editHostIPField          input").html(host.ip)
+        $("#editHostIPField          input").val(host.ip)
         $("#editHostHostnameField    input").val(host.name)
         $("#editHostLocationField    select").val(host.location.id)
         $("#editHostSpeciesField     select").val(host.species.id)
@@ -418,7 +418,7 @@
 
         $("#data tbody").append(
           "<tr style='background-color: "+host.group.color+"'>"+
-            "<td class='numeric' data-sort-value='"+host_ip_int+"'>"+
+            "<td class='numeric' data-sorted="true" data-sort-value='"+host_ip_int+"'>"+
               host.ip+"&nbsp;"+
               "<span class='glyphicon edit-button glyphicon-edit' onClick='editHost("+host.id+")'/>"+
             "</td>"+
@@ -444,6 +444,7 @@
       });
       jQuery(function($){
         $('.table').footable();
+        
       });
     });
   }
