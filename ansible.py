@@ -44,4 +44,5 @@ def ansible_host(hostname):
         ansible_vars[ansible_var.split("=")[0]]=ansible_var.split("=")[1]
       else:
         ansible_vars[ansible_var]=None
+    ansible_vars['ansible_host']=Host.ip
   return jsonify(ansible_vars)
