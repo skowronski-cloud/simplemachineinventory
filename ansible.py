@@ -11,7 +11,7 @@ def ansible_list():
     ansible_group["hosts"]=[]
     for host in Host.query.filter(Host.role_id==role.id):
       ansible_group["hosts"].append(host.name)
-    ansible_group["vars"]={"doi_role":role.name}
+    ansible_group["vars"]={"smi_role":role.name}
     ansible_group["children"]=[]
     ansible_groups[role.name]=ansible_group
   for group in Group.query.all():
@@ -19,7 +19,7 @@ def ansible_list():
     ansible_group["hosts"]=[]
     for host in Host.query.filter(Host.group_id==group.id):
       ansible_group["hosts"].append(host.name)
-    ansible_group["vars"]={"doi_group":group.name}
+    ansible_group["vars"]={"smi_group":group.name}
     ansible_group["children"]=[]
     ansible_groups[group.name]=ansible_group
   for system in System.query.all():
@@ -27,7 +27,7 @@ def ansible_list():
     ansible_group["hosts"]=[]
     for host in Host.query.filter(Host.system_id==system.id):
       ansible_group["hosts"].append(host.name)
-    ansible_group["vars"]={"doi_system":system.name}
+    ansible_group["vars"]={"smi_system":system.name}
     ansible_group["children"]=[]
     ansible_groups[system.name]=ansible_group
   return jsonify(ansible_groups)
