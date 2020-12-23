@@ -29,7 +29,12 @@ class Group(SAFRSBase, db.Model):
   color       = db.Column(db.String(64))
   owners      = db.Column(db.String(1024))
   notes       = db.Column(db.String(1024))
-  hosts       = db.relationship("Host", back_populates="group")
+  memberships = db.relationship("HostGroupMemebership", lazy="select")
+class HostGroupMemebership(SAFRSBase, db.Model):
+  __tablename__ = "HostGroupMemebership"
+  id          = db.Column(db.Integer, primary_key=True)
+  host_id     = db.Column(db.Integer, db.ForeignKey("Host.id"))
+  group_id    = db.Column(db.Integer, db.ForeignKey("Group.id"))
 class System(SAFRSBase, db.Model):
   __tablename__ = "System"
   id          = db.Column(db.Integer, primary_key=True)
@@ -55,12 +60,11 @@ class Host(SAFRSBase, db.Model):
   species     = db.relationship("Species",  back_populates="hosts")
   role_id     = db.Column(db.Integer, db.ForeignKey("Role.id"))
   role        = db.relationship("Role", back_populates="hosts")
-  group_id    = db.Column(db.Integer, db.ForeignKey("Group.id"))
-  group       = db.relationship("Group", back_populates="hosts")
   purpose     = db.Column(db.String(1024))
   cpu         = db.Column(db.Integer())
   ram         = db.Column(db.Integer())
   disks       = db.relationship("Disk", back_populates="host", lazy="select")
+  memberships = db.relationship("HostGroupMemebership", lazy="select")
   system_id   = db.Column(db.Integer, db.ForeignKey("System.id"))
   system      = db.relationship("System", back_populates="hosts")
   notes       = db.Column(db.String(1024))

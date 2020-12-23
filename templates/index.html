@@ -85,7 +85,7 @@
         <th>Location</th>
         <th>Species</th>
         <th>Hostname</th>
-        <th>Group</th>
+        <th>Groups</th>
         <th>Role</th>
         <th>System</th>
         <th data-type="number">CPU</th>
@@ -111,7 +111,7 @@
         </div>
         <div class="modal-body">
           <ul></ul> 
-          <br /><button class='btn btn-primary' onClick='saveGroup(-1)'>new group</button>         
+          <br /><button class='btn btn-primary' onClick='saveGroup(-1)'>New group</button>         
         </div>
       </div>
     </div>
@@ -133,7 +133,7 @@
             <tr><td class="editTableFieldName">Location</td>    <td id="editHostLocationField"><select></select></td></tr>
             <tr><td class="editTableFieldName">Species</td>     <td id="editHostSpeciesField"><select></select></td></tr>
             <tr><td class="editTableFieldName">Hostname</td>    <td id="editHostHostnameField"><input type="text" width="30" /></td></tr>
-            <tr><td class="editTableFieldName">Group</td>       <td id="editHostGroupField"><select></select></td></tr>
+            <!--<tr><td class="editTableFieldName">Group</td>       <td id="editHostGroupField"><select></select></td></tr>-->
             <tr><td class="editTableFieldName">Role</td>        <td id="editHostRoleField"><select></select></td></tr>
             <tr><td class="editTableFieldName">System</td>      <td id="editHostSystemField"><select></select></td></tr>
             <tr><td class="editTableFieldName">CPU</td>         <td id="editHostCPUField"><input type="number" min="0" max="128" /></td></tr>
@@ -203,7 +203,7 @@
   }
 
   function saveGroup(id){
-    var targetName=prompt("provide target name of group");
+    var targetName=prompt("Provide target name of Group");
     if (targetName==null) return;
 
     if (id<0 || id=="new"){
@@ -238,8 +238,8 @@
         $("#manageGroups .modal-body ul").append(
           "<li>"+
           "<b>"+group.name+"</b> "+
-          "<button class='btn btn-sm btn-info'   onClick='saveGroup("+group.id+")'  >edit</button> "+
-          "<button class='btn btn-sm btn-danger' onClick='deleteGroup("+group.id+")'>delete</button>"+
+          "<button class='btn btn-sm btn-info'   onClick='saveGroup("+group.id+")'  >Edit</button> "+
+          "<button class='btn btn-sm btn-danger' onClick='deleteGroup("+group.id+")'>Delete</button>"+
           "</li>"
         );
       });
@@ -255,7 +255,7 @@
         $("#editHostHostnameField    input").val("")
         $("#editHostLocationField    select").val(-1)
         $("#editHostSpeciesField     select").val(-1)
-        $("#editHostGroupField       select").val(-1)
+        //$("#editHostGroupField       select").val(-1)
         $("#editHostRoleField        select").val(-1)
         $("#editHostSystemField      select").val(-1)
         $("#editHostCPUField         input").val("")
@@ -267,14 +267,14 @@
         $("#editHost").modal()
     }
     else {
-      store.load("Host",id,{ include: "disks,location,species,role,group,system" }).subscribe(function (host) {
+      store.load("Host",id,{ include: "disks,location,species,role,system" }).subscribe(function (host) {
         console.log(host)
         $("#editHostIDField          span").html(host.id)
         $("#editHostIPField          input").val(host.ip)
         $("#editHostHostnameField    input").val(host.name)
         $("#editHostLocationField    select").val(host.location.id)
         $("#editHostSpeciesField     select").val(host.species.id)
-        $("#editHostGroupField       select").val(host.group.id)
+        //$("#editHostGroupField       select").val(host.group.id)
         $("#editHostRoleField        select").val(host.role.id)
         $("#editHostSystemField      select").val(host.system.id)
         $("#editHostCPUField         input").val(host.cpu)
@@ -312,7 +312,7 @@
       name:        $("#editHostHostnameField    input").val(),
       location_id: $("#editHostLocationField    :selected").val(),
       species_id:  $("#editHostSpeciesField     :selected").val(),
-      group_id:    $("#editHostGroupField       :selected").val(),
+      //group_id:    $("#editHostGroupField       :selected").val(),
       role_id:     $("#editHostRoleField        :selected").val(),
       system_id:   $("#editHostSystemField      :selected").val(),
       cpu:         $("#editHostCPUField         input").val(),
@@ -443,7 +443,7 @@
           "<option value='"+group.id+"'>"+group.name+"</option>"
         );
       });
-      sortSelects("#editHostGroupField select")
+      //sortSelects("#editHostGroupField select")
     });
     store.loadAll("Role").subscribe(function (Role) {
       $("#editHostRoleField select").html("")
@@ -468,7 +468,7 @@
     $("#data tbody").html("");
     store.loadAll(
       "Host", 
-      { include: "disks,location,species,role,group,system" }
+      { include: "disks,location,species,role,system" }
     ).subscribe(function (Host) {
       window.Host=Host;
       $.each( Host, function( idx, host ) {
@@ -481,7 +481,8 @@
         var host_ip_int=toInt(host.ip);
 
         $("#data tbody").append(
-          "<tr style='background-color: "+host.group.color+"'>"+
+          //"<tr style='background-color: "+host.group.color+"'>"+
+          "<tr>"+
             "<td class='numeric' data-sorted='true' data-sort-value='"+host_ip_int+"'>"+
               host.ip+"&nbsp;"+
               "<span class='glyphicon edit-button glyphicon-edit' onClick='editHost("+host.id+")'/>"+
@@ -489,7 +490,8 @@
             "<td class='small'>"+host.location.datacenter+"<br />"+host.location.hypervisor+"</td>"+
             "<td>"+host.species.name+"</td>"+
             "<td class='hostname'>"+host.name+"</td>"+
-            "<td>"+host.group.name+"</td>"+
+            //"<td>"+host.group.name+"</td>"+
+            "<td>---</td>"+
             "<td>"+host.role.name+"</td>"+
             "<td>"+
               "<span style='width: 2em;'>"+
@@ -557,7 +559,7 @@
     color:        Store.attr(),
     owners:       Store.attr(),
     notes:        Store.attr(),
-    hosts:        Store.hasMany()
+    //hosts:        Store.hasMany()
   });
   store.define([ "System" ], {
     name:         Store.attr(),
@@ -580,8 +582,8 @@
     species_id:   Store.attr(),
     role:         Store.hasOne(),
     role_id:      Store.attr(),
-    group:        Store.hasOne(),
-    group_id:     Store.attr(),
+    //group:        Store.hasOne(),
+    //group_id:     Store.attr(),
     purpose:      Store.attr(),
     cpu:          Store.attr(),
     ram:          Store.attr(),
