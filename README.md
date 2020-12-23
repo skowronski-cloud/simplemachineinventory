@@ -3,10 +3,10 @@
 ## deploy
 
 ### prerequisites
-* Linux
-* python3.7
+* POSIX compatible system
+* python3.7+
 * some reverse proxy for covering up auth and access control
-* `pip3 install -r requyirements.txt`
+* `pip3 install -r requirements.txt`
 
 
 ## usage 

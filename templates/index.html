@@ -75,6 +75,7 @@
   <a class='btn btn-info' href='/api/'>API (Swagger)</a>
   <a class='btn btn-info' href='/ansible/list'><img src="/static/ansiblelogo.png" class="inlineImage" /> List</a>
   <a class='btn btn-info' href='/ansible/host/HOSTNAME_HERE'><img src="/static/ansiblelogo.png" class="inlineImage" /> Host</a>
+  <button type='button' class='btn-for-writer btn btn-info' onClick='manageGroups()'>Manage groups</button>
   <button type='button' class='btn-for-writer btn btn-success' onClick='editHost(-1)'>Add host</button>
 
   <table id="data" class="table" data-sorting="true" data-filtering="true" data-show-toggle="true" data-expand-first="false">
@@ -98,6 +99,22 @@
     <tbody>
     </tbody>
   </table>
+
+  <div class="modal" tabindex="-1" role="dialog" id="manageGroups">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Manage groups</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <ul></ul> 
+          <br /><button class='btn btn-primary' onClick='saveGroup(-1)'>new group</button>         
+      </div>
+    </div>
+  </div>
 
   <div class="modal" tabindex="-1" role="dialog" id="editHost">
     <div class="modal-dialog" role="document">
@@ -181,6 +198,52 @@
       return parseInt(octet) * Math.pow(256, (array.length - index - 1));
     }).reduce((prev, curr) => {
       return prev + curr;
+    });
+  }
+
+  function saveGroup(id){
+    var targetName=prompt("provide target name of group");
+    if (targetName==null) return;
+
+    if (id<0 || id=="new"){
+      store.create("Group",{name: targetName}).subscribe(function (group) {
+        alert("Created group #"+group.id)
+        manageGroups()
+      });   
+    }
+    else {
+      store.update("Group",id,{name: targetName}).subscribe(function (group) {
+        alert("Saved group #"+group.id)
+        manageGroups()
+      }); 
+    }
+  }
+  function deleteGroup(groupID){
+    if (confirm("Are you sure you wnat to delete this group?")){
+      store.destroy("Group",groupID).subscribe(function (group) {
+        alert("Deleted group #"+groupID)
+        manageGroups()
+      });
+    }
+  }
+  function manageGroups(){
+    $("#manageGroups .modal-body ul").html("");
+    store.loadAll(
+      "Group", 
+      {  }
+    ).subscribe(function (Group) {
+      $("#manageGroups .modal-body ul").html("")
+      $.each( Group, function( idx, group ) {    
+        $("#manageGroups .modal-body ul").append(
+          "<li>"+
+          "<b>"+group.name+"</b> "+
+          "<button class='btn btn-sm btn-info'   onClick='saveGroup("+group.id+")'  >edit</button> "+
+          "<button class='btn btn-sm btn-danger' onClick='deleteGroup("+group.id+")'>delete</button>"+
+          "</li>"
+        );
+      });
+
+      $("#manageGroups").modal()
     });
   }
 
