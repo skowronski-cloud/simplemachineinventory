@@ -17,11 +17,12 @@ def ansible_list():
   for group in Group.query.all():
     ansible_group=dict()
     ansible_group["hosts"]=[]
-    for host in Host.query.filter(Host.group_id==group.id):
-      ansible_group["hosts"].append(host.name)
+    for membership in HostGroupMemebership.query.filter(HostGroupMemebership.group_id==group.id):
+      ansible_group["hosts"].append(membership.host.name)
     ansible_group["vars"]={"smi_group":group.name}
     ansible_group["children"]=[]
-    ansible_groups[group.name]=ansible_group
+    ansible_groups[group.name]=ansible_group  
+
   for system in System.query.all():
     ansible_group=dict()
     ansible_group["hosts"]=[]
