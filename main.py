@@ -39,6 +39,7 @@ if __name__ == "__main__":
     api.expose_object(Species)
     api.expose_object(Role)
     api.expose_object(Group)
+    api.expose_object(HostGroupMemebership)
     api.expose_object(Disk)
     api.expose_object(Host)
     api.expose_object(System)

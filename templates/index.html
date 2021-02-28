@@ -43,6 +43,9 @@
     #editHostDisksField {
       border-left: 1px solid black;
     }
+    #editHostMembershipsField {
+      border-left: 1px solid black;
+    }
     #headerTable{
       width: 100%;
     }
@@ -61,10 +64,9 @@
     <tr>
       <td class="l">
         <h1>
-          <!--<span class="glyphicon glyphicon-floppy-disk"></span>&nbsp;-->
           <img src="/static/chest.png" class="inlineImage" />
           <b>SimpleMachineInventory</b>
-          <i style="height: small">v0.5.0</i>
+          <i style="height: small">v0.6.0</i>
         </h1>
       </td>
       <td class="r" style="display: none">
@@ -76,6 +78,7 @@
   <a class='btn btn-info' href='/ansible/list'><img src="/static/ansiblelogo.png" class="inlineImage" /> List</a>
   <a class='btn btn-info' href='/ansible/host/HOSTNAME_HERE'><img src="/static/ansiblelogo.png" class="inlineImage" /> Host</a>
   <button type='button' class='btn-for-writer btn btn-info' onClick='manageGroups()'>Manage groups</button>
+  <button type='button' class='btn-for-writer btn btn-info' onClick='manageRoles()'>Manage roles</button>
   <button type='button' class='btn-for-writer btn btn-success' onClick='editHost(-1)'>Add host</button>
 
   <table id="data" class="table" data-sorting="true" data-filtering="true" data-show-toggle="true" data-expand-first="false">
@@ -85,7 +88,7 @@
         <th>Location</th>
         <th>Species</th>
         <th>Hostname</th>
-        <th>Groups</th>
+        <th data-breakpoints="all">Groups</th>
         <th>Role</th>
         <th>System</th>
         <th data-type="number">CPU</th>
@@ -99,6 +102,23 @@
     <tbody>
     </tbody>
   </table>
+
+  <div class="modal" tabindex="-1" role="dialog" id="manageRoles">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Manage roles</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <ul></ul> 
+          <br /><button class='btn btn-primary' onClick='saveRole(-1)'>New role</button>         
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="modal" tabindex="-1" role="dialog" id="manageGroups">
     <div class="modal-dialog" role="document">
@@ -133,7 +153,7 @@
             <tr><td class="editTableFieldName">Location</td>    <td id="editHostLocationField"><select></select></td></tr>
             <tr><td class="editTableFieldName">Species</td>     <td id="editHostSpeciesField"><select></select></td></tr>
             <tr><td class="editTableFieldName">Hostname</td>    <td id="editHostHostnameField"><input type="text" width="30" /></td></tr>
-            <!--<tr><td class="editTableFieldName">Group</td>       <td id="editHostGroupField"><select></select></td></tr>-->
+            <tr><td class="editTableFieldName">Group</td>       <td id="editHostMembershipsField"><ul></ul></td></tr>
             <tr><td class="editTableFieldName">Role</td>        <td id="editHostRoleField"><select></select></td></tr>
             <tr><td class="editTableFieldName">System</td>      <td id="editHostSystemField"><select></select></td></tr>
             <tr><td class="editTableFieldName">CPU</td>         <td id="editHostCPUField"><input type="number" min="0" max="128" /></td></tr>
@@ -174,6 +194,32 @@
         <div class="modal-footer">
           <button type="button" class="btn-for-writer btn btn-danger" onClick="deleteDisk()">Delete</button>
           <button type="button" class="btn-for-writer btn btn-primary" onClick="saveDisk()">Save</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" tabindex="-1" role="dialog" id="editMembership">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit host membership</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <table id="editMembershipTable">
+            <tr><td class="editTableFieldName">Membership #</td><td id="editMembershipIDField"><span></span></td></tr>
+            <tr><td class="editTableFieldName">Host #</td>      <td id="editMembershipHostIDField"><span></span></td></tr>
+            <tr><td class="editTableFieldName">Hostname</td>    <td id="editMembershipHostnameField"><span></span></tr>
+            <tr><td class="editTableFieldName">Group</td>       <td id="editMembershipGroupField"><select></select></td></tr>
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-for-writer btn btn-danger" onClick="deleteMembership()">Delete</button>
+          <button type="button" class="btn-for-writer btn btn-primary" onClick="saveMembership()">Save</button>
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
         </div>
       </div>
@@ -247,6 +293,51 @@
       $("#manageGroups").modal()
     });
   }
+  function saveRole(id){
+    var targetName=prompt("Provide target name of Role");
+    if (targetName==null) return;
+
+    if (id<0 || id=="new"){
+      store.create("Role",{name: targetName}).subscribe(function (role) {
+        alert("Created role #"+role.id)
+        manageRoles()
+      });   
+    }
+    else {
+      store.update("Role",id,{name: targetName}).subscribe(function (role) {
+        alert("Saved role #"+role.id)
+        manageRoles()
+      }); 
+    }
+  }
+  function deleteRole(roleID){
+    if (confirm("Are you sure you wnat to delete this role?")){
+      store.destroy("Role",roleID).subscribe(function (role) {
+        alert("Deleted role #"+roleID)
+        manageRoles()
+      });
+    }
+  }
+  function manageRoles(){
+    $("#manageRoles .modal-body ul").html("");
+    store.loadAll(
+      "Role", 
+      {  }
+    ).subscribe(function (Role) {
+      $("#manageRoles .modal-body ul").html("")
+      $.each( Role, function( idx, role ) {    
+        $("#manageRoles .modal-body ul").append(
+          "<li>"+
+          "<b>"+role.name+"</b> "+
+          "<button class='btn btn-sm btn-info'   onClick='saveRole("+role.id+")'  >Edit</button> "+
+          "<button class='btn btn-sm btn-danger' onClick='deleteRole("+role.id+")'>Delete</button>"+
+          "</li>"
+        );
+      });
+
+      $("#manageRoles").modal()
+    });
+  }
 
   function editHost(id){
     if (id<0 || id=="new"){
@@ -255,7 +346,6 @@
         $("#editHostHostnameField    input").val("")
         $("#editHostLocationField    select").val(-1)
         $("#editHostSpeciesField     select").val(-1)
-        //$("#editHostGroupField       select").val(-1)
         $("#editHostRoleField        select").val(-1)
         $("#editHostSystemField      select").val(-1)
         $("#editHostCPUField         input").val("")
@@ -267,15 +357,13 @@
         $("#editHost").modal()
     }
     else {
-      store.load("Host",id,{ include: "disks,location,species,role,system" }).subscribe(function (host) {
-        console.log(host)
+      store.load("Host",id,{ include: "disks,location,species,role,system,memberships" }).subscribe(function (host) {
         $("#editHostIDField          span").html(host.id)
         $("#editHostIPField          input").val(host.ip)
         $("#editHostHostnameField    input").val(host.name)
         $("#editHostLocationField    select").val(host.location.id)
         $("#editHostSpeciesField     select").val(host.species.id)
-        //$("#editHostGroupField       select").val(host.group.id)
-        $("#editHostRoleField        select").val(host.role.id)
+        $("#editHostRoleField        select").val(host.role!=null ? host.role.id : -1)
         $("#editHostSystemField      select").val(host.system.id)
         $("#editHostCPUField         input").val(host.cpu)
         $("#editHostRAMField         input").val(host.ram)
@@ -298,6 +386,21 @@
         $("#editHostDisksField ul").append(
             "<li>"+
               "<button type='button' class='btn btn-success btn-sm' onClick='editDisk(-1)'>new disk</button>"+
+            "</li>"
+          )
+
+        $("#editHostMembershipsField ul").html("")
+        $.each( host.memberships, function( idx, membership ) {
+          $("#editHostMembershipsField ul").append(
+            "<li>"+
+              "<b>"+lookupGroupObject(membership.group_id).name+"</b>"+
+              "<button type='button' class='btn btn-primary btn-sm' onClick='editMembership("+membership.id+")'>edit</button>"+
+            "</li>"
+          )
+        })
+        $("#editHostMembershipsField ul").append(
+            "<li>"+
+              "<button type='button' class='btn btn-success btn-sm' onClick='editMembership(-1)'>new membership</button>"+
             "</li>"
           )
 
@@ -360,7 +463,6 @@
     }
     else {
       store.load("Disk",id,{ include: "" }).subscribe(function (disk) {
-        console.log(disk)
         $("#editDiskIDField       span").html(disk.id)
         $("#editDiskHostIDField   span").html(disk.host_id)
         $("#editDiskSizeField     input").val(disk.size)
@@ -409,12 +511,70 @@
     }
   }
 
+  function editMembership(id){
+    if (id<0 || id=="new"){
+        $("#editMembershipIDField       span").html("new")
+        $("#editMembershipHostIDField   span").html($("#editHostIDField span").html())
+        $("#editMembershipHostnameField span").html($("#editHostHostnameField span").html())
+        $("#editMembershipGroupField    select").val(-1)
+        $("#editMembership").modal()
+    }
+    else {
+      store.load("HostGroupMemebership",id,{ include: "group,host" }).subscribe(function (membership) {
+        $("#editMembershipIDField       span").html(membership.id)
+        $("#editMembershipHostIDField   span").html(membership.host.id)
+        $("#editMembershipHostnameField span").html(membership.host.hostname)
+        $("#editMembershipGroupField    select").val(membership.group.id)
+        $("#editMembership").modal()
+      });
+    }
+  }
+  function saveMembership(){
+    var membershipID=$("#editMembershipIDField  span").html();
+    var membershipFromEditor={
+      host_id:     $("#editMembershipHostIDField   span").html(),
+      group_id:    $("#editMembershipGroupField    :selected").val(),
+    };
+
+    if (membershipID<0 || membershipID=="new"){
+      store.create("HostGroupMemebership",membershipFromEditor).subscribe(function (membership) {
+        editHost(membership.host_id)
+        $("#editMembershipIDField  span").html(membership.id)
+        alert("Created membership #"+membership.id+" for host #"+membership.host_id)
+        loadHosts()
+      });
+    }
+    else {
+      store.update("HostGroupMemebership",membershipID,membershipFromEditor).subscribe(function (membership) {
+        editHost(membership.host_id)
+        alert("Saved membership #"+membership.id+" for host #"+membership.host_id)
+        loadHosts()
+      });
+    }
+  }
+  function deleteMembership(){
+    var membershipID=$("#editMembershipIDField       span").html();
+    var hostID=      $("#editMembershipHostIDField   span").html();
+    if (confirm("Are you sure you wnat to delete this membership?")){
+      store.destroy("HostGroupMemebership",membershipID).subscribe(function (membership) {
+        editHost($("#editMembershipHostIDField   span").html())
+        alert("Deleted membership #"+membershipID+" from host #"+hostID)
+        loadHosts()
+        $("#editMembership").modal('hide')
+      });
+    }
+  }
+
   function sortSelects(selector){
     var select = $(selector);
     select.html(select.find('option').sort(function(x, y) {
       // to change to descending order switch "<" for ">"
       return $(x).text() > $(y).text() ? 1 : -1;
     }));
+  }
+
+  function lookupGroupObject(id){
+    return store.find("Group",id)
   }
 
   function loadMetadata(){
@@ -437,9 +597,10 @@
       sortSelects("#editHostSpeciesField select")
     });
     store.loadAll("Group").subscribe(function (Group) {
+      window.Group=Group;
       $("#editHostGroupField select").html("")
       $.each( Group, function( idx, group ) {
-        $("#editHostGroupField select").append(
+        $("#editMembershipGroupField select").append(
           "<option value='"+group.id+"'>"+group.name+"</option>"
         );
       });
@@ -468,7 +629,7 @@
     $("#data tbody").html("");
     store.loadAll(
       "Host", 
-      { include: "disks,location,species,role,system" }
+      { include: "disks,location,species,role,system,memberships" }
     ).subscribe(function (Host) {
       window.Host=Host;
       $.each( Host, function( idx, host ) {
@@ -477,8 +638,13 @@
           disks+="<li>"+disk.size+"GB</li>";
           disksTotal+=disk.size;
         });
+        var memberships="";
+        $.each( host.memberships, function( membershipidx, membership ) {
+          memberships+="<li>"+lookupGroupObject(membership.group_id).name+"</li>";
+        });
         var host_ram_formatted=(host.ram<1024 ? host.ram+" MB" : (host.ram/1024).toFixed(2)+" GB")
         var host_ip_int=toInt(host.ip);
+        var role=(host.role!=null ? host.role.name : "---");
 
         $("#data tbody").append(
           //"<tr style='background-color: "+host.group.color+"'>"+
@@ -490,9 +656,8 @@
             "<td class='small'>"+host.location.datacenter+"<br />"+host.location.hypervisor+"</td>"+
             "<td>"+host.species.name+"</td>"+
             "<td class='hostname'>"+host.name+"</td>"+
-            //"<td>"+host.group.name+"</td>"+
-            "<td>---</td>"+
-            "<td>"+host.role.name+"</td>"+
+            "<td>"+memberships+"</td>"+
+            "<td>"+role+"</td>"+
             "<td>"+
               "<span style='width: 2em;'>"+
                 "<img src='"+host.system.icon+"' style='height: 1.5em;' /> "+
@@ -516,6 +681,7 @@
   }
 
   function checkAuth(){
+    return;
     $.getJSON('/auth_check', function(data) { 
       if (data.upn!="anonymous"){
         $("#upn").text(data.upn)
@@ -555,11 +721,13 @@
     hosts:        Store.hasMany()
   });
   store.define([ "Group" ], {
-    name:         Store.attr(),
-    color:        Store.attr(),
-    owners:       Store.attr(),
-    notes:        Store.attr(),
-    //hosts:        Store.hasMany()
+    name:         Store.attr()
+  });
+  store.define([ "HostGroupMemebership" ], {
+    host_id:      Store.attr(),
+    group_id:     Store.attr(),
+    host:         Store.hasOne(),
+    group:        Store.hasOne()
   });
   store.define([ "System" ], {
     name:         Store.attr(),
@@ -582,8 +750,7 @@
     species_id:   Store.attr(),
     role:         Store.hasOne(),
     role_id:      Store.attr(),
-    //group:        Store.hasOne(),
-    //group_id:     Store.attr(),
+    memberships:  Store.hasMany(),
     purpose:      Store.attr(),
     cpu:          Store.attr(),
     ram:          Store.attr(),
