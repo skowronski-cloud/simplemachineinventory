@@ -47,3 +47,7 @@ try:
 except Exception as e:
   print('{"error":"'+str(e)+'"}')
 ```
+
+## DB schema
+
+![](schema.png)
