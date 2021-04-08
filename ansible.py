@@ -37,6 +37,7 @@ def ansible_list():
 def ansible_host(hostname):
   ansible_vars = dict()
   host = Host.query.filter(Host.name==hostname).first()
+  disk = Disk.query.filter(Disk.host_id==host.id).first().size
   if not host:
     return "HTTP/404 Not Found", 404
   if host.ansible_vars:
@@ -46,6 +47,11 @@ def ansible_host(hostname):
       else:
         ansible_vars[ansible_var]=None
   ansible_vars['ansible_host']=host.ip
+
+  ansible_vars['proxmox_cpu']=host.cpu
+  ansible_vars['proxmox_mem']=host.ram
+  ansible_vars['proxmox_dsk']=disk
+
   return jsonify(ansible_vars)
 
 @app.route("/ansible/inventory.txt")
@@ -54,7 +60,8 @@ def ansible_inventory():
 
   inventory+="\n# Hosts\n\n"
   for host in Host.query.all():
-    inventory+=("%s ansible_host=%s\n"%(host.name, host.ip))
+    disk = Disk.query.filter(Disk.host_id==host.id).first().size
+    inventory+=("%s ansible_host=%s proxmox_cpu=%d proxmox_mem=%d proxmox_dsk=%d \n"%(host.name, host.ip, host.cpu, host.ram, disk))
 
   inventory+="\n## SMI Roles\n\n"
 
