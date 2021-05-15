@@ -60,8 +60,12 @@ def ansible_inventory():
 
   inventory+="\n# Hosts\n\n"
   for host in Host.query.all():
-    disk = Disk.query.filter(Disk.host_id==host.id).first().size
-    inventory+=("%s ansible_host=%s proxmox_cpu=%d proxmox_mem=%d proxmox_dsk=%d \n"%(host.name, host.ip, host.cpu, host.ram, disk))
+    disks = Disk.query.filter(Disk.host_id==host.id)
+    if len(disks)>0:
+      primary_disk_size=disks.first().size
+    else:
+      primary_disk_size=0    
+    inventory+=("%s ansible_host=%s proxmox_cpu=%d proxmox_mem=%d proxmox_dsk=%d \n"%(host.name, host.ip, host.cpu, host.ram, primary_disk_size))
 
   inventory+="\n## SMI Roles\n\n"
 
