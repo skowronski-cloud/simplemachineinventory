@@ -151,10 +151,10 @@
         <div class="modal-body">
           <table id="editHostTable">
             <tr><td class="editTableFieldName">Host #</td>      <td id="editHostIDField"><span></span></td></tr>
-            <tr><td class="editTableFieldName">IP</td>          <td id="editHostIPField"><input type="text" width="30" /></td></td></tr>
+            <tr><td class="editTableFieldName">IP</td>          <td id="editHostIPField"><input type="text" width="30" required="required" /></td></td></tr>
             <tr><td class="editTableFieldName">Location</td>    <td id="editHostLocationField"><select></select></td></tr>
             <tr><td class="editTableFieldName">Species</td>     <td id="editHostSpeciesField"><select></select></td></tr>
-            <tr><td class="editTableFieldName">Hostname</td>    <td id="editHostHostnameField"><input type="text" width="30" /></td></tr>
+            <tr><td class="editTableFieldName">Hostname</td>    <td id="editHostHostnameField"><input type="text" width="30" required="required" /></td></tr>
             <tr><td class="editTableFieldName">Group</td>       <td id="editHostMembershipsField"><ul></ul></td></tr>
             <tr><td class="editTableFieldName">Role</td>        <td id="editHostRoleField"><select></select></td></tr>
             <tr><td class="editTableFieldName">System</td>      <td id="editHostSystemField"><select></select></td></tr>
@@ -426,6 +426,11 @@
       notes:       $("#editHostNotesField       textarea").val(),
       ansible_vars:$("#editHostAnsibleVarsField textarea").val(),
     };
+
+    if (hostFromEditor.ip   == null || hostFromEditor.ip   == '') { alert("IP cannot be empty");       return false; }
+    if (hostFromEditor.name == null || hostFromEditor.name == '') { alert("hostname cannot be empty"); return false; }
+    if (hostFromEditor.cpu  == null || hostFromEditor.cpu  == '') { alert("CPU cannot be empty");      return false; }
+    if (hostFromEditor.ram  == null || hostFromEditor.ram  == '') { alert("RAM cannot be empty");      return false; }
 
     if (hostID<0 || hostID=="new"){
       store.create("Host",hostFromEditor).subscribe(function (host) {

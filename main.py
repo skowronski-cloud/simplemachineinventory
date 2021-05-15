@@ -44,4 +44,14 @@ if __name__ == "__main__":
     api.expose_object(Host)
     api.expose_object(System)
     api.expose_object(User)
+
+    if Location.query.filter(Location.id==999999).first() == None:
+      Location(id=999999, datacenter="N/A", hypervisor="N/A")
+    if Role.query.filter(Role.id==999999).first() == None:
+      Role(id=999999, name="N/A", notes="N/A")
+    if Species.query.filter(Species.id==999999).first() == None:
+      Species(id=999999, name="N/A")
+    if System.query.filter(System.id==999999).first() == None:
+      System(id=999999, name="N/A", icon="/static/icons/na.jpg")
+
     app.run(host=HOST, port=PORT)
