@@ -37,7 +37,11 @@ def ansible_list():
 def ansible_host(hostname):
   ansible_vars = dict()
   host = Host.query.filter(Host.name==hostname).first()
-  disk = Disk.query.filter(Disk.host_id==host.id).first().size
+  disks = Disk.query.filter(Disk.host_id==host.id)
+  if disks.count()>0:
+    primary_disk_size=disks.first().size
+  else:
+    primary_disk_size=0
   if not host:
     return "HTTP/404 Not Found", 404
   if host.ansible_vars:
@@ -50,7 +54,7 @@ def ansible_host(hostname):
 
   ansible_vars['proxmox_cpu']=host.cpu
   ansible_vars['proxmox_mem']=host.ram
-  ansible_vars['proxmox_dsk']=disk
+  ansible_vars['proxmox_dsk']=primary_disk_size
 
   return jsonify(ansible_vars)
 
@@ -61,7 +65,7 @@ def ansible_inventory():
   inventory+="\n# Hosts\n\n"
   for host in Host.query.all():
     disks = Disk.query.filter(Disk.host_id==host.id)
-    if len(disks)>0:
+    if disks.count()>0:
       primary_disk_size=disks.first().size
     else:
       primary_disk_size=0    
