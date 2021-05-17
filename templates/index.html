@@ -258,12 +258,16 @@
       store.create("Group",{name: targetName}).subscribe(function (group) {
         alert("Created group #"+group.id)
         manageGroups()
+        loadMetadata()
+        loadHosts()
       });   
     }
     else {
       store.update("Group",id,{name: targetName}).subscribe(function (group) {
         alert("Saved group #"+group.id)
         manageGroups()
+        loadMetadata()
+        loadHosts()
       }); 
     }
   }
@@ -272,6 +276,8 @@
       store.destroy("Group",groupID).subscribe(function (group) {
         alert("Deleted group #"+groupID)
         manageGroups()
+        loadMetadata()
+        loadHosts()
       });
     }
   }
@@ -303,12 +309,16 @@
       store.create("Role",{name: targetName}).subscribe(function (role) {
         alert("Created role #"+role.id)
         manageRoles()
+        loadMetadata()
+        loadHosts()
       });   
     }
     else {
       store.update("Role",id,{name: targetName}).subscribe(function (role) {
         alert("Saved role #"+role.id)
         manageRoles()
+        loadMetadata()
+        loadHosts()
       }); 
     }
   }
@@ -317,6 +327,8 @@
       store.destroy("Role",roleID).subscribe(function (role) {
         alert("Deleted role #"+roleID)
         manageRoles()
+        loadMetadata()
+        loadHosts()
       });
     }
   }
