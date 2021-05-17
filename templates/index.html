@@ -33,12 +33,16 @@
     .edit-button{
       color: #3498DB;
     }
+    .remove-button{
+      color: red;
+    }
     .editTableFieldName{
       font-weight: bold;
       text-align: right;
     }
-    #editHostTable td {
+    .editHostTable td {
       padding: 5px;
+      border: 1px solid #ddd;
     }
     #editHostDisksField {
       border-left: 1px solid black;
@@ -57,6 +61,10 @@
     }
     .btn{
       padding: 3px 6px;
+    }
+
+    #editHostCPUField input, #editHostRAMField input{
+      width: 64px;
     }
 
   </style>
@@ -149,21 +157,31 @@
           </button>
         </div>
         <div class="modal-body">
-          <table id="editHostTable">
-            <tr><td class="editTableFieldName">Host #</td>      <td id="editHostIDField"><span></span></td></tr>
-            <tr><td class="editTableFieldName">IP</td>          <td id="editHostIPField"><input type="text" width="30" required="required" /></td></td></tr>
-            <tr><td class="editTableFieldName">Location</td>    <td id="editHostLocationField"><select></select></td></tr>
-            <tr><td class="editTableFieldName">Species</td>     <td id="editHostSpeciesField"><select></select></td></tr>
-            <tr><td class="editTableFieldName">Hostname</td>    <td id="editHostHostnameField"><input type="text" width="30" required="required" /></td></tr>
-            <tr><td class="editTableFieldName">Group</td>       <td id="editHostMembershipsField"><ul></ul></td></tr>
-            <tr><td class="editTableFieldName">Role</td>        <td id="editHostRoleField"><select></select></td></tr>
-            <tr><td class="editTableFieldName">System</td>      <td id="editHostSystemField"><select></select></td></tr>
-            <tr><td class="editTableFieldName">CPU</td>         <td id="editHostCPUField"><input type="number" min="0" max="128" /></td></tr>
-            <tr><td class="editTableFieldName">RAM</td>         <td id="editHostRAMField"><input type="number" min="0" max="131072" />MB</td></tr>
-            <tr><td class="editTableFieldName">Disks</td>       <td id="editHostDisksField"><ul></ul></td></tr>
-            <tr><td class="editTableFieldName">Purpose</td>     <td id="editHostPurposeField"><textarea rows="4" cols="50"></textarea></td></tr>
-            <tr><td class="editTableFieldName">Notes</td>       <td id="editHostNotesField"><textarea rows="4" cols="50"></textarea></td></tr>
-            <tr><td class="editTableFieldName">Ansible vars</td><td id="editHostAnsibleVarsField"><textarea class="numeric" rows="4" cols="50"></textarea></td></tr>
+          <table>
+          <tr>
+          <td>        
+            <table class="editHostTable">
+              <tr><td class="editTableFieldName">Host #</td>      <td id="editHostIDField"><span></span></td></tr>
+              <tr><td class="editTableFieldName">IP</td>          <td id="editHostIPField"><input type="text" width="30" required="required" /></td></td></tr>
+              <tr><td class="editTableFieldName">Location</td>    <td id="editHostLocationField"><select></select></td></tr>
+              <tr><td class="editTableFieldName">Species</td>     <td id="editHostSpeciesField"><select></select></td></tr>
+              <tr><td class="editTableFieldName">Hostname</td>    <td id="editHostHostnameField"><input type="text" width="30" required="required" /></td></tr>
+              <tr><td class="editTableFieldName">System</td>      <td id="editHostSystemField"><select></select></td></tr>
+              <tr><td class="editTableFieldName">CPU</td>         <td id="editHostCPUField"><input type="number" min="0" max="128" /> cores</td></tr>
+              <tr><td class="editTableFieldName">RAM</td>         <td id="editHostRAMField"><input type="number" min="0" max="131072" /> MB</td></tr>
+              <tr><td class="editTableFieldName">Disks</td>       <td id="editHostDisksField"><ul></ul></td></tr>
+            </table>
+          </td>
+          <td>
+            <table class="editHostTable">
+              <tr><td class="editTableFieldName">Role</td>        <td id="editHostRoleField"><select></select></td></tr>
+              <tr><td class="editTableFieldName">Group</td>       <td id="editHostMembershipsField"><ul></ul></td></tr>
+              <tr><td class="editTableFieldName">Purpose</td>     <td id="editHostPurposeField"><textarea rows="2" cols="30"></textarea></td></tr>
+              <tr><td class="editTableFieldName">Notes</td>       <td id="editHostNotesField"><textarea rows="2" cols="30"></textarea></td></tr>
+              <tr><td class="editTableFieldName">Ansible vars</td><td id="editHostAnsibleVarsField"><textarea class="numeric" rows="2" cols="25"></textarea></td></tr>
+            </table>
+          </td>
+          </tr>
           </table>
         </div>
         <div class="modal-footer">
@@ -251,7 +269,8 @@
   }
 
   function saveGroup(id){
-    var targetName=prompt("Provide target name of Group");
+    var groupName=lookupGroupObject(id).name
+    var targetName=prompt("Provide target name of Group ["+groupName+"]");
     if (targetName==null) return;
 
     if (id<0 || id=="new"){
@@ -272,7 +291,8 @@
     }
   }
   function deleteGroup(groupID){
-    if (confirm("Are you sure you wnat to delete this group?")){
+    var groupName=lookupGroupObject(groupID).name
+    if (confirm("Are you sure you wnat to delete group ["+groupName+"] ?")){
       store.destroy("Group",groupID).subscribe(function (group) {
         alert("Deleted group #"+groupID)
         manageGroups()
@@ -291,9 +311,9 @@
       $.each( Group, function( idx, group ) {    
         $("#manageGroups .modal-body ul").append(
           "<li>"+
+          "<span   class='glyphicon edit-button   glyphicon-edit'   onClick='saveGroup("+group.id+")'></span>&nbsp;"+
+          "<span   class='glyphicon remove-button glyphicon-remove' onClick='deleteGroup("+group.id+")'></span>&nbsp;"+
           "<b>"+group.name+"</b> "+
-          "<button class='btn btn-sm btn-info'   onClick='saveGroup("+group.id+")'  >Edit</button> "+
-          "<button class='btn btn-sm btn-danger' onClick='deleteGroup("+group.id+")'>Delete</button>"+
           "</li>"
         );
       });
@@ -302,7 +322,8 @@
     });
   }
   function saveRole(id){
-    var targetName=prompt("Provide target name of Role");
+    var roleName=lookupRoleObject(id).name;
+    var targetName=prompt("Provide target name of Role ["+roleName+"]");
     if (targetName==null) return;
 
     if (id<0 || id=="new"){
@@ -323,7 +344,8 @@
     }
   }
   function deleteRole(roleID){
-    if (confirm("Are you sure you wnat to delete this role?")){
+    var roleName=lookupRoleObject(roleID).name;
+    if (confirm("Are you sure you wnat to delete role ["+roleName+"] ?")){
       store.destroy("Role",roleID).subscribe(function (role) {
         alert("Deleted role #"+roleID)
         manageRoles()
@@ -342,9 +364,9 @@
       $.each( Role, function( idx, role ) {    
         $("#manageRoles .modal-body ul").append(
           "<li>"+
+          "<span   class='glyphicon edit-button   glyphicon-edit'   onClick='saveRole("+role.id+")'></span>&nbsp;"+
+          "<span   class='glyphicon remove-button glyphicon-remove' onClick='deleteRole("+role.id+")'></span>&nbsp;"+
           "<b>"+role.name+"</b> "+
-          "<button class='btn btn-sm btn-info'   onClick='saveRole("+role.id+")'  >Edit</button> "+
-          "<button class='btn btn-sm btn-danger' onClick='deleteRole("+role.id+")'>Delete</button>"+
           "</li>"
         );
       });
@@ -389,11 +411,10 @@
         $.each( host.disks, function( idx, disk ) {
           $("#editHostDisksField ul").append(
             "<li>"+
+              "<span   class='glyphicon edit-button   glyphicon-edit'   onClick='editDisk("+disk.id+")'></span>&nbsp;"+
               "<b class='numeric'>"+disk.size+"GB</b>"+
               " - "+
               "<i>"+disk.name+"</i>"+
-              " "+
-              "<button type='button' class='btn btn-primary btn-sm' onClick='editDisk("+disk.id+")'>edit</button>"+
             "</li>"
           )
         })
@@ -407,8 +428,8 @@
         $.each( host.memberships, function( idx, membership ) {
           $("#editHostMembershipsField ul").append(
             "<li>"+
+              "<span   class='glyphicon edit-button   glyphicon-edit'   onClick='editMembership("+membership.id+")'></span>&nbsp;"+
               "<b>"+lookupGroupObject(membership.group_id).name+"</b>"+
-              "<button type='button' class='btn btn-primary btn-sm' onClick='editMembership("+membership.id+")'>edit</button>"+
             "</li>"
           )
         })
@@ -594,6 +615,9 @@
 
   function lookupGroupObject(id){
     return store.find("Group",id)
+  }
+  function lookupRoleObject(id){
+    return store.find("Role",id)
   }
 
   function loadMetadata(){
