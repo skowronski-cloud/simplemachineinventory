@@ -52,9 +52,9 @@ def ansible_host(hostname):
         ansible_vars[ansible_var]=None
   ansible_vars['ansible_host']=host.ip
 
-  ansible_vars['proxmox_cpu']=host.cpu
-  ansible_vars['proxmox_mem']=host.ram
-  ansible_vars['proxmox_dsk']=primary_disk_size
+  ansible_vars['cpu']=host.cpu
+  ansible_vars['mem']=host.ram
+  ansible_vars['dsk']=primary_disk_size
 
   return jsonify(ansible_vars)
 
@@ -69,7 +69,7 @@ def ansible_inventory():
       primary_disk_size=disks.first().size
     else:
       primary_disk_size=0    
-    inventory+=("%s ansible_host=%s proxmox_cpu=%d proxmox_mem=%d proxmox_dsk=%d \n"%(host.name, host.ip, host.cpu, host.ram, primary_disk_size))
+    inventory+=("%s ansible_host=%s cpu=%d mem=%d dsk=%d \n"%(host.name, host.ip, host.cpu, host.ram, primary_disk_size))
 
   inventory+="\n## SMI Roles\n\n"
 
