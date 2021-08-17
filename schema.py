@@ -20,6 +20,7 @@ class Role(SAFRSBase, db.Model):
   __tablename__ = "Role"
   id          = db.Column(db.Integer, primary_key=True)
   name        = db.Column(db.String(64))
+  color       = db.Column(db.String(6))
   notes       = db.Column(db.String(1024))
   hosts       = db.relationship("Host", back_populates="role")
 class Group(SAFRSBase, db.Model):

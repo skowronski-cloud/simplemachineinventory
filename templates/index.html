@@ -321,12 +321,13 @@
     });
   }
   function saveRole(id){
-    var roleName=lookupRoleObject(id).name;
-    var targetName=prompt("Provide target name of Role ["+roleName+"]");
+    var role=lookupRoleObject(id);
+    var targetName=prompt("Provide target name of Role ["+role.name+"]", role.name);
+    var targetColor=prompt("Provide target hex of color of Role ["+role.name+"]", role.color);
     if (targetName==null) return;
 
     if (id<0 || id=="new"){
-      store.create("Role",{name: targetName}).subscribe(function (role) {
+      store.create("Role",{name: targetName, color: targetColor}).subscribe(function (role) {
         alert("Created role #"+role.id)
         manageRoles()
         loadMetadata()
@@ -334,7 +335,7 @@
       });   
     }
     else {
-      store.update("Role",id,{name: targetName}).subscribe(function (role) {
+      store.update("Role",id,{name: targetName, color: targetColor}).subscribe(function (role) {
         alert("Saved role #"+role.id)
         manageRoles()
         loadMetadata()
@@ -365,7 +366,7 @@
           "<li>"+
           "<span   class='glyphicon edit-button   glyphicon-edit'   onClick='saveRole("+role.id+")'></span>&nbsp;"+
           "<span   class='glyphicon remove-button glyphicon-remove' onClick='deleteRole("+role.id+")'></span>&nbsp;"+
-          "<b>"+role.name+"</b> "+
+          "<b style='background-color: #"+role.color+"'>"+role.name+"</b> "+
           "</li>"
         );
       });
@@ -690,10 +691,11 @@
         var host_ram_formatted=(host.ram<1024 ? host.ram+" MB" : (host.ram/1024).toFixed(2)+" GB")
         var host_ip_int=toInt(host.ip);
         var role=(host.role!=null ? host.role.name : "---");
+        var color=(host.role!=null ? "#"+host.role.color : "none");
 
         $("#data tbody").append(
           //"<tr style='background-color: "+host.group.color+"'>"+
-          "<tr>"+
+          "<tr style='background-color: "+color+"'>"+
             "<td class='numeric' data-sorted='true' data-sort-value='"+host_ip_int+"'>"+
               host.ip+"&nbsp;"+
               "<span class='glyphicon edit-button glyphicon-edit' onClick='editHost("+host.id+")'/>"+
@@ -762,6 +764,7 @@
   });
   store.define([ "Role" ], {
     name:         Store.attr(),
+    color:        Store.attr(),
     notes:        Store.attr(),
     hosts:        Store.hasMany()
   });
