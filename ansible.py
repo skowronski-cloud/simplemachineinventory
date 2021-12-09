@@ -37,6 +37,7 @@ def ansible_list():
 def ansible_host(hostname):
   ansible_vars = dict()
   host = Host.query.filter(Host.name==hostname).first()
+  loc = Location.query.filter(Location.id==host.location_id).first()
   disks = Disk.query.filter(Disk.host_id==host.id)
   if disks.count()>0:
     primary_disk_size=disks.first().size
@@ -55,6 +56,7 @@ def ansible_host(hostname):
   ansible_vars['cpu']=host.cpu
   ansible_vars['mem']=host.ram
   ansible_vars['dsk']=primary_disk_size
+  ansible_vars['hv'] =loc.hypervisor
 
   return jsonify(ansible_vars)
 
@@ -64,12 +66,13 @@ def ansible_inventory():
 
   inventory+="\n# Hosts\n\n"
   for host in Host.query.all():
+    loc = Location.query.filter(Location.id==host.location_id).first()
     disks = Disk.query.filter(Disk.host_id==host.id)
     if disks.count()>0:
       primary_disk_size=disks.first().size
     else:
       primary_disk_size=0    
-    inventory+=("%s ansible_host=%s cpu=%d mem=%d dsk=%d \n"%(host.name, host.ip, host.cpu, host.ram, primary_disk_size))
+    inventory+=("%s ansible_host=%s cpu=%d mem=%d dsk=%d hv=%s \n"%(host.name, host.ip, host.cpu, host.ram, primary_disk_size, loc.hypervisor))
 
   inventory+="\n## SMI Roles\n\n"
 
