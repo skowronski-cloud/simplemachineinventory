@@ -1,4 +1,4 @@
-flask
+Flask==2.2.4
 flask_sqlalchemy
 flask_swagger_ui
 safrs
@@ -9,3 +9,4 @@ pyopenssl
 flask_oauthlib
 pyyaml
 psycopg2-binary
+SQLAlchemy==1.4
